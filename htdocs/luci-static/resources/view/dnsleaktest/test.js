@@ -82,72 +82,88 @@ return view.extend({
 
 							// 等待探测请求发出
 							return Promise.all(promises).then(function() {
-								// 延迟一秒等待服务端记录
-								return new Promise(resolve => setTimeout(resolve, 1500));
+								// 延迟一段时间等待服务端记录
+								return new Promise(resolve => setTimeout(resolve, 2000));
 							}).then(function() {
-								// 3. 获取 DNS 测试结果
+								// 3. 获取已发现的 DNS IP 列表
+								statusId.textContent = _('Collecting results...');
 								return fs.exec_direct('/usr/bin/curl', ['-s', `https://${token}-1.${api}/dnsdetection/`]).then(function (result) {
 									var dnsData = JSON.parse(result);
 									var dnsIps = Object.keys(dnsData.ip || {});
-									var totalDNS = dnsIps.length;
 									
-									var rowsInfo = document.getElementById('info');
-									var rowsResults = document.getElementById('results');
-									var rowsRemove = document.querySelectorAll('#results .tr, #info .tr');
-									
-									// 清理旧结果
-									rowsRemove.forEach(function(row) {
-										if (!row.classList.contains('table-titles')) row.remove();
+									// 4. 二次查询补全每个 DNS IP 的详细信息 (国家、运营商)
+									var detailPromises = dnsIps.map(function(ip) {
+										return fs.exec('/usr/bin/curl', ['-s', `https://${api}/json/${ip}`]).then(function(res) {
+											var info = JSON.parse(res.stdout);
+											return {
+												ip: ip,
+												country_name: info.country_name || 'N/A',
+												isp_name: info.isp_name || 'N/A'
+											};
+										}).catch(function() {
+											return { ip: ip, country_name: 'N/A', isp_name: 'N/A' };
+										});
 									});
 
-									var fileResults = '/etc/dnsleaktest/result';
-									var fileDNS = `/etc/dnsleaktest/${token.substring(0,8)}`;
-									
-									var date = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-									var time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+									return Promise.all(detailPromises).then(function(fullResults) {
+										var totalDNS = fullResults.length;
+										var rowsInfo = document.getElementById('info');
+										var rowsResults = document.getElementById('results');
+										var rowsRemove = document.querySelectorAll('#results .tr, #info .tr');
+										
+										// 清理旧结果
+										rowsRemove.forEach(function(row) {
+											if (!row.classList.contains('table-titles')) row.remove();
+										});
 
-									// 判断结论：如果发现主 IP 以外的 DNS，且不是预期的，则可能泄漏
-									var conclusion = (totalDNS > 0) ? _('DNS may be leaking') : _('No DNS leak detected');
+										var fileResults = '/etc/dnsleaktest/result';
+										var fileDNS = `/etc/dnsleaktest/${token.substring(0,8)}`;
+										
+										var date = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+										var time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
-									// 插入信息表汇总
-									var newRow = E('tr', {'class': 'tr cbi-rowstyle-1'}, [
-										E('td', {'class': 'td'}, token.substring(0,8)),
-										E('td', {'class': 'td'}, typeIP.ip),
-										E('td', {'class': 'td'}, typeIP.country_name || 'N/A'),
-										E('td', {'class': 'td'}, typeIP.isp_name || 'N/A'),
-										E('td', {'class': 'td'}, totalDNS),
-										E('td', {'class': 'td'}, conclusion)
-									]);
-									rowsInfo.appendChild(newRow);
+										// 判断结论：如果发现主 IP 以外的 DNS，且不是预期的，则可能泄漏
+										var conclusion = (totalDNS > 0) ? _('DNS may be leaking') : _('No DNS leak detected');
 
-									// 插入详细结果表
-									var dataDNS = '';
-									for (var j = 0; j < dnsIps.length; j++) {
-										var ip = dnsIps[j];
-										var rowClass = (j + 1) % 2 === 0 ? 'cbi-rowstyle-2' : 'cbi-rowstyle-1';
-										var dnsRow = E('tr', {'class': 'tr ' + rowClass}, [
-											E('td', {'class': 'td'}, j + 1),
-											E('td', {'class': 'td'}, ip),
-											E('td', {'class': 'td'}, dnsData.ip[ip].country_name || 'N/A'),
-											E('td', {'class': 'td'}, dnsData.ip[ip].isp_name || 'N/A')
+										// 插入信息表汇总
+										var newRow = E('tr', {'class': 'tr cbi-rowstyle-1'}, [
+											E('td', {'class': 'td'}, token.substring(0,8)),
+											E('td', {'class': 'td'}, typeIP.ip),
+											E('td', {'class': 'td'}, typeIP.country_name || 'N/A'),
+											E('td', {'class': 'td'}, typeIP.isp_name || 'N/A'),
+											E('td', {'class': 'td'}, totalDNS),
+											E('td', {'class': 'td'}, conclusion)
 										]);
-										rowsResults.appendChild(dnsRow);
-										dataDNS += `${ip}\n`;
-									}
+										rowsInfo.appendChild(newRow);
 
-									running = false;
-									statusId.textContent = _('Finished');
+										// 插入详细结果表
+										var dataDNS = '';
+										for (var j = 0; j < fullResults.length; j++) {
+											var res = fullResults[j];
+											var rowClass = (j + 1) % 2 === 0 ? 'cbi-rowstyle-2' : 'cbi-rowstyle-1';
+											var dnsRow = E('tr', {'class': 'tr ' + rowClass}, [
+												E('td', {'class': 'td'}, j + 1),
+												E('td', {'class': 'td'}, res.ip),
+												E('td', {'class': 'td'}, res.country_name),
+												E('td', {'class': 'td'}, res.isp_name)
+											]);
+											rowsResults.appendChild(dnsRow);
+											dataDNS += `${res.ip} [${res.country_name}, ${res.isp_name}]\n`;
+										}
 
-									// 写入日志文件
-									var dataInfo = `| ${date} | ${time} | ${token.substring(0,8)} | ${typeIP.ip} | ${typeIP.country_name} | ${totalDNS} | ${conclusion} |\n`;
-									fs.read(fileResults).then(function(res) {
-										fs.write(fileResults, res.trim() + '\n' + dataInfo);
-									}).catch(function() {
-										fs.write(fileResults, dataInfo);
+										running = false;
+										statusId.textContent = _('Finished');
+
+										// 写入日志文件
+										var dataInfo = `| ${date} | ${time} | ${token.substring(0,8)} | ${typeIP.ip} | ${typeIP.country_name} | ${totalDNS} | ${conclusion} |\n`;
+										fs.read(fileResults).then(function(res) {
+											fs.write(fileResults, res.trim() + '\n' + dataInfo);
+										}).catch(function() {
+											fs.write(fileResults, dataInfo);
+										});
+
+										fs.write(fileDNS, `Token: ${token}\nDate: ${date} ${time}\nIP: ${typeIP.ip}\nDNS Found: ${totalDNS}\n\n${dataDNS}`);
 									});
-
-									fs.write(fileDNS, `Token: ${token}\nDate: ${date} ${time}\nIP: ${typeIP.ip}\nDNS Found: ${totalDNS}\n\n${dataDNS}`);
-
 								});
 							});
 						}).catch(function(error) {
