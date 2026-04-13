@@ -1,30 +1,45 @@
 <div align="center">
-  <h1>LuCI support for DNS Leak Test</h1>
-  <h3>Perform a DNS Leak Test to check the security of your DNS settings.</h3>
+  <h1>luci-app-dnsleaktest</h1>
+  <h3>一个为您提供快速、准确、可视化的 DNS 泄漏测试 LuCI 插件。</h3>
 </div>
 <hr/>
 <div align="center">
-  <img alt="License" src="https://img.shields.io/github/license/animegasan/luci-app-dnsleaktest?style=for-the-badge">
-  <img alt="Forks" src="https://img.shields.io/github/forks/animegasan/luci-app-dnsleaktest?style=for-the-badge">
-  <img alt="Release" src="https://img.shields.io/github/v/release/animegasan/luci-app-dnsleaktest?style=for-the-badge">
-  <img alt="Downloads" src="https://img.shields.io/github/downloads/animegasan/luci-app-dnsleaktest/total?style=for-the-badge">
+  <img alt="License" src="https://img.shields.io/github/license/hxzlplp7/luci-app-dnsleaktest?style=for-the-badge">
+  <img alt="Forks" src="https://img.shields.io/github/forks/hxzlplp7/luci-app-dnsleaktest?style=for-the-badge">
+  <img alt="Release" src="https://img.shields.io/github/v/release/hxzlplp7/luci-app-dnsleaktest?style=for-the-badge">
+  <img alt="Downloads" src="https://img.shields.io/github/downloads/hxzlplp7/luci-app-dnsleaktest/total?style=for-the-badge">
 </div>
 <br/>
-<div align="center">
-  <a target="_blank" href="https://saweria.co/animegasan" alt="Saweria"><img src="https://img.shields.io/badge/saweria-donation?style=for-the-badge&logo=adobeindesign&labelColor=black&color=%23FFA401"></a>
-  <a target="_blank" href="https://www.paypal.com/paypalme/animegasan" alt="PayPal"><img src="https://img.shields.io/badge/paypal-donation?style=for-the-badge&logo=paypal&labelColor=black&color=%23003087"></a>
-  <a target="_blank" href="https://www.buymeacoffee.com/animegasan" alt="BuyMeACoffee"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donation?style=for-the-badge&logo=buymeacoffee&labelColor=black&color=%23FFDD00"></a>
-</div>
-<hr/>
 
-This project is an application inspired from the DNS leak test by <a target="_blank" href="https://github.com/macvk/dnsleaktest">macvk</a>, providing a user-friendly graphical interface to easily perform DNS security tests.
+## 简介
 
-## Install via Terminal
+本项目是一个高度定制化且全面汉化的 OpenWrt LuCI 插件，灵感源自 [macvk/dnsleaktest](https://github.com/macvk/dnsleaktest)。在 v2.0+ 版本中，我们已全面迁移至 **ipleak.net** 探测引擎，为您提供更专业的隐私安全检测。
+
+### 核心特性
+
+- **增强型探测引擎**（v2.2+）：采用 `ipleak.net` 后端，通过 40 位随机 Token 与并发子域名探测，大幅提升在不同网络环境下的结果收集成功率。
+- **深度信息补全**：不仅展示 DNS IP，更通过二次查询机制 100% 还原每一个探测到的 DNS 服务器的**国家/地区**、**运营商 (ISP)** 及详细地理位置。
+- **完全汉化**：界面文本与结果提示均经过精细的简体中文本地化处理。
+- **自动化部署**：支持一键安装脚本与 GitHub Actions 自动编译 IPK 包。
+
+## 如何安装
+
+### 直接使用终端一键安装
+
+```bash
+curl -s https://raw.githubusercontent.com/hxzlplp7/luci-app-dnsleaktest/master/zh-cn.sh | sh
 ```
-curl -s https://raw.githubusercontent.com/animegasan/luci-app-dnsleaktest/master/install.sh | sh
-```
 
-# Preview
-![image](https://github.com/animegasan/luci-app-dnsleaktest/assets/14136053/41e1dfab-e650-442a-82c6-3cb90a98ab38)
+*注：`zh-cn.sh` 会自动检测版本、注入中文翻译并重启 LuCI 界面。*
 
-![image](https://github.com/animegasan/luci-app-dnsleaktest/assets/14136053/eaf9b37e-42b9-48df-9fcc-102fde405951)
+### 手动安装流程
+
+1. 前往 [Releases](https://github.com/hxzlplp7/luci-app-dnsleaktest/releases) 页面下载最新的 `.ipk` 文件。
+2. 同时下载 `luci-i18n-dnsleaktest-zh-cn` 语言包以获得完整的中文体验。
+3. 使用 `opkg install` 指令进行安装。
+
+## 致谢
+
+- 原作者: [Hilman Maulana](https://github.com/animegasan)
+- 灵感来源: [macvk/dnsleaktest](https://github.com/macvk/dnsleaktest)
+- 后端服务提供商: [ipleak.net](https://ipleak.net)
