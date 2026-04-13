@@ -54,15 +54,15 @@ return view.extend({
 						var statusId = document.getElementById('dnsleak-status');
 						var api = 'bash.ws';
 						statusId.textContent = _('Running');
-						return fs.exec('curl', ['-s', '-m', '5', '-o', '/dev/null', `https://${api}`]).then(function (result) {
+						return fs.exec('/usr/bin/curl', ['-s', '-m', '5', '-o', '/dev/null', `https://${api}`]).then(function (result) {
 							if (result.code === 0) {
-								return fs.exec('curl', ['-s', `https://${api}/id`]).then(function (result) {
+								return fs.exec('/usr/bin/curl', ['-s', `https://${api}/id`]).then(function (result) {
 									if (result.code === 0) {
 										var id = result.stdout.trim();
 										for (var i = 1; i <= 10; i++) {
-											fs.exec_direct('ping', ['-c', '1', `${i}.${id}.${api}`]);
+											fs.exec_direct('/bin/ping', ['-c', '1', `${i}.${id}.${api}`]);
 										}
-										return fs.exec_direct('curl', ['-s', `https://${api}/dnsleak/test/${id}?json`]).then(function (result) {
+										return fs.exec_direct('/usr/bin/curl', ['-s', `https://${api}/dnsleak/test/${id}?json`]).then(function (result) {
 											var result = JSON.parse(result);
 											var typeIP = result[0];
 											var dataCon = result[result.length - 1].ip;

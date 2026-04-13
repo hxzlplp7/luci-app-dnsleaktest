@@ -4,6 +4,8 @@
 		"read": {
 			"file": {
 				"/usr/bin/curl": [ "exec" ],
+				"/bin/curl": [ "exec" ],
+				"/usr/bin/ping": [ "exec" ],
 				"/bin/ping": [ "exec" ],
 				"/etc/dnsleaktest/*": [ "read" ]
 			}
