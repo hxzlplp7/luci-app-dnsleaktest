@@ -106,7 +106,8 @@ jobs:
           cd sdk
           echo "make package/luci-app-dnsleaktest/{clean,compile} -j$(nproc)"
           make package/luci-app-dnsleaktest/{clean,compile} -j$(nproc)
-          find bin/packages/ -name "luci-*.ipk" -exec cp {} ../base/ \;
+          mkdir -p ../artifact
+          find bin/packages/ -name "luci-*.ipk" -exec cp {} ../artifact/ \;
           rm .config .config.old
           cd ..
           echo "status=success" >> $GITHUB_OUTPUT
@@ -118,4 +119,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{needs.job_check.outputs.version}}
-          files: base/luci-*.ipk
+          files: artifact/luci-*.ipk
