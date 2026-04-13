@@ -57,6 +57,9 @@ jobs:
     if: needs.job_check.outputs.has_update == 'true'
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Install packages
         run: |
           echo "Install packages"
@@ -84,11 +87,18 @@ jobs:
           echo "src-git-full packages https://github.com/openwrt/packages.git;openwrt-23.05" >> feeds.conf
           echo "src-git-full luci https://git.openwrt.org/project/luci.git;openwrt-23.05" >> feeds.conf
           echo "src-git-full routing https://git.openwrt.org/feed/routing.git;openwrt-23.05"  >> feeds.conf
-          git clone -b master https://github.com/${{ github.repository }}.git package/downloads/luci-app-dnsleaktest
           ./scripts/feeds update -a
-          echo "CONFIG_PACKAGE_luci-app-dnsleaktest=m" > .config
-          ./scripts/feeds install -d n luci-app-dnsleaktest
-          make download -j8
+
+      - name: Prepare package source
+        run: |
+          cd sdk
+          # 清理旧的源码缓存并重新创建
+          rm -rf package/luci-app-dnsleaktest
+          mkdir -p package/luci-app-dnsleaktest
+          # 将当前检出的源码同步到 SDK package 目录
+          cp -r ../htdocs ../root ../po ../Makefile ../zh-cn.sh package/luci-app-dnsleaktest/
+          ./scripts/feeds install -p luci-app-dnsleaktest
+          ./scripts/feeds install -a
       - name: Configure IPK
         run: |
           cd sdk
