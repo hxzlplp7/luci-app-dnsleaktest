@@ -128,8 +128,8 @@ return view.extend({
 										var dnsRow = E('tr', {'class': 'tr ' + rowClass}, [
 											E('td', {'class': 'td'}, j + 1),
 											E('td', {'class': 'td'}, ip),
-											E('td', {'class': 'td'}, 'Checked'), // ipleak API dnsdetection 不直接返回国家，需二次查询或仅显示IP
-											E('td', {'class': 'td'}, 'Detected')
+											E('td', {'class': 'td'}, dnsData.ip[ip].country_name || 'N/A'),
+											E('td', {'class': 'td'}, dnsData.ip[ip].isp_name || 'N/A')
 										]);
 										rowsResults.appendChild(dnsRow);
 										dataDNS += `${ip}\n`;
