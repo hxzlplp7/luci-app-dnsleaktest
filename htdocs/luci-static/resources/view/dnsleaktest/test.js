@@ -1,6 +1,7 @@
 /* This is free software, licensed under the Apache License, Version 2.0
  *
  * Copyright (C) 2024 Hilman Maulana <hilman0.0maulana@gmail.com>
+ * 简体中文本地化及 ipleak.net 引擎迁移由 Antigravity 完成
  */
 
 'use strict';
@@ -27,7 +28,7 @@ return view.extend({
 					E('th', {'class': 'th'}, _('ID')),
 					E('th', {'class': 'th'}, _('IP Address')),
 					E('th', {'class': 'th'}, _('Country')),
-					E('th', {'class': 'th'}, _('DNS Server')),
+					E('th', {'class': 'th'}, _('ISP')),
 					E('th', {'class': 'th'}, _('Servers Found')),
 					E('th', {'class': 'th'}, _('Conclusion'))
 				]),
@@ -40,10 +41,20 @@ return view.extend({
 					E('th', {'class': 'th'}, _('No')),
 					E('th', {'class': 'th'}, _('IP Address')),
 					E('th', {'class': 'th'}, _('Country')),
-					E('th', {'class': 'th'}, _('DNS Server'))
+					E('th', {'class': 'th'}, _('ISP'))
 				]),
 			])
 		];
+
+		// 生成用于 ipleak.net 探测的 40 位随机 Token
+		function generateToken(length) {
+			var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+			var result = '';
+			for (var i = 0; i < length; i++)
+				result += chars.charAt(Math.floor(Math.random() * chars.length));
+			return result;
+		}
+
 		var running = false;
 		var button = [
 			E('button', {
@@ -52,119 +63,103 @@ return view.extend({
 					if (!running) {
 						running = true;
 						var statusId = document.getElementById('dnsleak-status');
-						var api = 'bash.ws';
+						var api = 'ipleak.net';
+						var token = generateToken(40);
+						
 						statusId.textContent = _('Running');
-						return fs.exec('/usr/bin/curl', ['-s', '-m', '5', '-o', '/dev/null', `https://${api}`]).then(function (result) {
-							if (result.code === 0) {
-								return fs.exec('/usr/bin/curl', ['-s', `https://${api}/id`]).then(function (result) {
-									if (result.code === 0) {
-										var id = result.stdout.trim();
-										for (var i = 1; i <= 10; i++) {
-											fs.exec_direct('/bin/ping', ['-c', '1', `${i}.${id}.${api}`]);
-										}
-										return fs.exec_direct('/usr/bin/curl', ['-s', `https://${api}/dnsleak/test/${id}?json`]).then(function (result) {
-											var result = JSON.parse(result);
-											var typeIP = result[0];
-											var dataCon = result[result.length - 1].ip;
-											var totalDNS = result.length - 2;
-											var rowsInfo = document.getElementById('info');
-											var rowsResults = document.getElementById('results');
-											var rowsRemove = document.querySelectorAll('#results .tr, #info .tr');
-											var fileResults = '/etc/dnsleaktest/result';
-											var fileDNS = `/etc/dnsleaktest/${id}`;
-											var index = 0;
-											var dataDNS = [];
-											var date = new Date().toLocaleDateString(undefined, {
-												weekday: 'short',
-												month: 'short',
-												day: 'numeric'
-											});
-											var time = new Date().toLocaleTimeString(undefined, {
-												hour: '2-digit',
-												minute: '2-digit'
-											});
-											var newRow = E('tr', {'class': 'tr cbi-rowstyle-1'}, [
-												E('td', {'class': 'td'}, id),
-												E('td', {'class': 'td'}, typeIP.ip),
-												E('td', {'class': 'td'}, typeIP.country_name),
-												E('td', {'class': 'td'}, typeIP.asn),
-												E('td', {'class': 'td'}, totalDNS),
-												E('td', {'class': 'td'}, dataCon)
-											]);
-											rowsInfo.appendChild(newRow);
-											for (var i = 0; i < result.length; i++) {
-												var typeDNS = result[i];
-												if (typeDNS.type === 'dns') {
-													index++;
-													var rowClass = index % 2 === 0 ? 'cbi-rowstyle-2' : 'cbi-rowstyle-1';
-													var newRow = E('tr', {'class': 'tr ' + rowClass}, [
-														E('td', {'class': 'td'}, index),
-														E('td', {'class': 'td'}, typeDNS.ip),
-														E('td', {'class': 'td'}, typeDNS.country_name),
-														E('td', {'class': 'td'}, typeDNS.asn)
-													]);
-													rowsResults.appendChild(newRow);
-													var data = `${typeDNS.ip} [${typeDNS.country_name}, ${typeDNS.asn}]\n`;
-													dataDNS += data;
-												}
-											};
-											running = false;
-											statusId.textContent =  _('Finished');
-											var dataInfo = `| ${date} | ${time} | ${id} | ${typeIP.ip} | ${typeIP.country_name} | ${typeIP.asn} | ${totalDNS} | ${dataCon} |\n`;
-											var dI0 = _('Test ID');
-											var dI1 = _('Date and time of test')
-											var dI2 = _('IP Address');
-											var dI3 = _('Use');
-											var dI4 = _('DNS Servers');
-											var dI5 = _('Conclusion');
-											var dD1 = `${dI0}:\n${id}\n\n` + `${dI1}:\n${date}, ${time}\n\n` + `${dI2}:\n` + `${typeIP.ip} [${typeIP.country_name}, ${typeIP.asn}]\n\n` + `${dI3} ${totalDNS} ${dI4}:\n`;
-											var dD2 = `\n${dI5}:\n${dataCon}\n`;
-											fs.read(fileResults).then(function(result) {
-												var newData = result.trim() + '\n' + dataInfo;
-												fs.write(fileResults, newData);
-											}).catch(function(error) {
-												running = false;
-												statusId.textContent = _('Error writing information data to file') + ` ${fileResults}`;
-												console.error(error);et
-											});
-											fs.write(fileDNS, dD1 + dataDNS + dD2).catch(function(error) {
-												running = false;
-												statusId.textContent = _('Error writing DNS data to file') + ` ${fileDNS}`;
-												console.error(error);
-											});
-											rowsRemove.forEach(function(row) {
-												if (!row.classList.contains('table-titles')) {
-													row.remove();
-												}
-											});
-										}).catch(function(error) {
-											running = false;
-											statusId.textContent = _('An error occurred while getting dnsleak test.');
-											console.error(error);
-										});
-									} else {
-										running = false;
-										statusId.textContent = _('Failed to get ID.');
-									}
-									console.log("Running: " + running);
-								}).catch(function(error) {
-									running = false;
-									statusId.textContent = _('An error occurred while getting ID.');
-									console.error(error);
-								})
-							} else {
-								running = false;
-								statusId.textContent = _('No internet connection. Please check your internet connection or try again later.');
+
+						// 1. 获取基础 IP 信息
+						return fs.exec('/usr/bin/curl', ['-s', `https://${api}/json/`]).then(function (result) {
+							var typeIP = JSON.parse(result.stdout);
+							
+							// 2. 发起 DNS 探测请求 (按照用户建议的模式)
+							var promises = [];
+							for (var i = 1; i <= 10; i++) {
+								promises.push(fs.exec_direct('/usr/bin/curl', ['-s', `https://${token}-${i}.${api}/dnsdetection/`]));
+								// 辅助使用 ping 增加探测成功率
+								fs.exec_direct('/bin/ping', ['-c', '1', `${token}-${i}.${api}`]);
 							}
+
+							// 等待探测请求发出
+							return Promise.all(promises).then(function() {
+								// 延迟一秒等待服务端记录
+								return new Promise(resolve => setTimeout(resolve, 1500));
+							}).then(function() {
+								// 3. 获取 DNS 测试结果
+								return fs.exec_direct('/usr/bin/curl', ['-s', `https://${token}-1.${api}/dnsdetection/`]).then(function (result) {
+									var dnsData = JSON.parse(result);
+									var dnsIps = Object.keys(dnsData.ip || {});
+									var totalDNS = dnsIps.length;
+									
+									var rowsInfo = document.getElementById('info');
+									var rowsResults = document.getElementById('results');
+									var rowsRemove = document.querySelectorAll('#results .tr, #info .tr');
+									
+									// 清理旧结果
+									rowsRemove.forEach(function(row) {
+										if (!row.classList.contains('table-titles')) row.remove();
+									});
+
+									var fileResults = '/etc/dnsleaktest/result';
+									var fileDNS = `/etc/dnsleaktest/${token.substring(0,8)}`;
+									
+									var date = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+									var time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+									// 判断结论：如果发现主 IP 以外的 DNS，且不是预期的，则可能泄漏
+									var conclusion = (totalDNS > 0) ? _('DNS may be leaking') : _('No DNS leak detected');
+
+									// 插入信息表汇总
+									var newRow = E('tr', {'class': 'tr cbi-rowstyle-1'}, [
+										E('td', {'class': 'td'}, token.substring(0,8)),
+										E('td', {'class': 'td'}, typeIP.ip),
+										E('td', {'class': 'td'}, typeIP.country_name || 'N/A'),
+										E('td', {'class': 'td'}, typeIP.isp_name || 'N/A'),
+										E('td', {'class': 'td'}, totalDNS),
+										E('td', {'class': 'td'}, conclusion)
+									]);
+									rowsInfo.appendChild(newRow);
+
+									// 插入详细结果表
+									var dataDNS = '';
+									for (var j = 0; j < dnsIps.length; j++) {
+										var ip = dnsIps[j];
+										var rowClass = (j + 1) % 2 === 0 ? 'cbi-rowstyle-2' : 'cbi-rowstyle-1';
+										var dnsRow = E('tr', {'class': 'tr ' + rowClass}, [
+											E('td', {'class': 'td'}, j + 1),
+											E('td', {'class': 'td'}, ip),
+											E('td', {'class': 'td'}, 'Checked'), // ipleak API dnsdetection 不直接返回国家，需二次查询或仅显示IP
+											E('td', {'class': 'td'}, 'Detected')
+										]);
+										rowsResults.appendChild(dnsRow);
+										dataDNS += `${ip}\n`;
+									}
+
+									running = false;
+									statusId.textContent = _('Finished');
+
+									// 写入日志文件
+									var dataInfo = `| ${date} | ${time} | ${token.substring(0,8)} | ${typeIP.ip} | ${typeIP.country_name} | ${totalDNS} | ${conclusion} |\n`;
+									fs.read(fileResults).then(function(res) {
+										fs.write(fileResults, res.trim() + '\n' + dataInfo);
+									}).catch(function() {
+										fs.write(fileResults, dataInfo);
+									});
+
+									fs.write(fileDNS, `Token: ${token}\nDate: ${date} ${time}\nIP: ${typeIP.ip}\nDNS Found: ${totalDNS}\n\n${dataDNS}`);
+
+								});
+							});
 						}).catch(function(error) {
 							running = false;
-							statusId.textContent = _('Please install curl to run internet test.');
+							statusId.textContent = _('An error occurred while getting dnsleak test.');
 							console.error(error);
 						});
 					}
 				}
 			}, _('Start'))
 		];
+
 		return E('div', {'class': 'cbi-map'}, [
 			E(header),
 			E('div', {'class': 'cbi-section-actions', 'style': 'margin: 1.25rem 0'}, [

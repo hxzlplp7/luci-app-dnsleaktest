@@ -111,3 +111,12 @@ msgstr "无测量结果。"
 
 msgid "DNS Leak Test by ID"
 msgstr "按测试 ID 下载结果"
+
+msgid "DNS may be leaking"
+msgstr "DNS 可能正在泄漏"
+
+msgid "No DNS leak detected"
+msgstr "未检测到 DNS 泄漏"
+
+msgid "ISP"
+msgstr "运营商"
