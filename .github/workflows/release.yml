@@ -15,7 +15,7 @@ env:
 
 jobs:
   job_check:
-    if: github.repository == ${{ github.repository }}
+    if: github.repository == github.repository
     name: Check Version
     runs-on: ubuntu-latest
     outputs:
@@ -118,4 +118,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{needs.job_check.outputs.version}}
-          files: ${{ env.FIRMWARE }}/base/luci-app-*.ipk
+          files: base/luci-app-*.ipk
