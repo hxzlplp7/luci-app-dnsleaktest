@@ -1,0 +1,113 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "DNS Leak Test"
+msgstr "DNS 泄漏测试"
+
+msgid "Result"
+msgstr "测试结果"
+
+msgid "Perform a DNS Leak Test to check the security of your DNS settings."
+msgstr "执行 DNS 泄漏测试以检查您的 DNS 设置安全性。"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Available"
+msgstr "可用"
+
+msgid "Information"
+msgstr "信息"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "IP Address"
+msgstr "IP 地址"
+
+msgid "Country"
+msgstr "国家/地区"
+
+msgid "DNS Server"
+msgstr "DNS 服务器"
+
+msgid "Servers Found"
+msgstr "发现服务器"
+
+msgid "Conclusion"
+msgstr "结论"
+
+msgid "Results"
+msgstr "测试结果"
+
+msgid "No"
+msgstr "序号"
+
+msgid "Running"
+msgstr "运行中"
+
+msgid "Finished"
+msgstr "已完成"
+
+msgid "Test ID"
+msgstr "测试 ID"
+
+msgid "Date and time of test"
+msgstr "测试日期与时间"
+
+msgid "Use"
+msgstr "用途"
+
+msgid "DNS Servers"
+msgstr "DNS 服务器"
+
+msgid "Error writing information data to file"
+msgstr "写入信息数据到文件时出错"
+
+msgid "Error writing DNS data to file"
+msgstr "写入 DNS 数据到文件时出错"
+
+msgid "An error occurred while getting dnsleak test."
+msgstr "获取 DNS 泄漏测试结果时出错。"
+
+msgid "Failed to get ID."
+msgstr "获取 ID 失败。"
+
+msgid "An error occurred while getting ID."
+msgstr "获取 ID 时出错。"
+
+msgid "No internet connection. Please check your internet connection or try again later."
+msgstr "无网络连接。请检查您的网络连接或稍后再试。"
+
+msgid "Please install curl to run internet test."
+msgstr "请安装 curl 以运行互联网测试。"
+
+msgid "Start"
+msgstr "开始测试"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Remove data"
+msgstr "删除数据"
+
+msgid "Are you sure you want to remove this data?"
+msgstr "确定要删除此数据吗？"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Remove"
+msgstr "删除"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "No data available."
+msgstr "无测量结果。"
+
+msgid "DNS Leak Test by ID"
+msgstr "按测试 ID 下载结果"

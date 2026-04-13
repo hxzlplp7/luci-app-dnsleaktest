@@ -6,7 +6,10 @@ on:
     branches:
       - 'master'
     paths:
-      - 'luci-app-dnsleaktest/Makefile'
+      - 'Makefile'
+      - 'po/**'
+      - 'root/**'
+      - 'htdocs/**'
 env:
   TZ: Asia/Jakarta
 
